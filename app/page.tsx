@@ -6,13 +6,14 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import Nav from '../components/Nav'
-import AnimatedHero from '../components/AnimatedHero'
-import ProjectCard from '../components/ProjectCard'
-import ProjectModal from '../components/ProjectModal'
-import SkillsGrid from '../components/SkillsGrid'
-import ContactForm from '../components/ContactForm'
-import Footer from '../components/Footer'
+import Nav from '../components/ui/Nav'
+import AnimatedHero from '../components/ui/AnimatedHero'
+import ProjectCard from '../components/ui/ProjectCard'
+import ProjectModal from '../components/ui/ProjectModal'
+import SkillsGrid from '../components/ui/SkillsGrid'
+import ContactForm from '../components/ui/ContactForm'
+import Footer from '../components/ui/Footer'
+
 import projects from './data/projects'
 import { staggerContainer, fadeInUp } from '../lib/motionVariants'
 
