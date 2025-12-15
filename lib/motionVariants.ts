@@ -3,8 +3,10 @@
  * Reusable animation configurations for consistent motion design
  */
 
-// Fade in from bottom with slight upward movement
-export const fadeInUp = {
+import { Variants } from "framer-motion";
+
+/* Fade in from bottom */
+export const fadeInUp: Variants = {
   initial: {
     opacity: 0,
     y: 40,
@@ -14,13 +16,13 @@ export const fadeInUp = {
     y: 0,
     transition: {
       duration: 0.6,
-      ease: [0.6, -0.05, 0.01, 0.99],
+      ease: "easeOut",
     },
   },
-}
+};
 
-// Stagger children animations
-export const staggerContainer = {
+/* Stagger children animations */
+export const staggerContainer: Variants = {
   initial: {},
   animate: {
     transition: {
@@ -28,10 +30,10 @@ export const staggerContainer = {
       delayChildren: 0.2,
     },
   },
-}
+};
 
-// Hover lift effect for cards
-export const hoverLift = {
+/* Hover lift effect for cards */
+export const hoverLift: Variants = {
   rest: {
     y: 0,
     scale: 1,
@@ -44,10 +46,10 @@ export const hoverLift = {
       ease: "easeOut",
     },
   },
-}
+};
 
-// Modal animation variant
-export const modalVariant = {
+/* Modal animation */
+export const modalVariant: Variants = {
   hidden: {
     opacity: 0,
     scale: 0.95,
@@ -59,7 +61,7 @@ export const modalVariant = {
     y: 0,
     transition: {
       duration: 0.3,
-      ease: [0.6, -0.05, 0.01, 0.99],
+      ease: "easeOut",
     },
   },
   exit: {
@@ -70,10 +72,10 @@ export const modalVariant = {
       duration: 0.2,
     },
   },
-}
+};
 
-// Fade in animation
-export const fadeIn = {
+/* Simple fade in */
+export const fadeIn: Variants = {
   initial: {
     opacity: 0,
   },
@@ -83,10 +85,10 @@ export const fadeIn = {
       duration: 0.5,
     },
   },
-}
+};
 
-// Scale up animation
-export const scaleUp = {
+/* Scale up animation */
+export const scaleUp: Variants = {
   initial: {
     opacity: 0,
     scale: 0.8,
@@ -99,4 +101,4 @@ export const scaleUp = {
       ease: "easeOut",
     },
   },
-}
+};
