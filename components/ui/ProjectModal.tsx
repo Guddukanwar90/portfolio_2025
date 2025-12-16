@@ -5,66 +5,89 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ExternalLink, Code2, Play, Pause } from 'lucide-react'
+import { X, ExternalLink, Code2, Play } from 'lucide-react'
 import { modalVariant } from '@/lib/motionVariants'
 import { useEffect, useRef, useState } from 'react'
+import type { Project } from './ProjectCard'
 
-const ProjectModal = ({ project, isOpen, onClose }) => {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const videoRef = useRef(null)
-  
-  // Handle ESC key to close modal
+/* ---------- TYPES ---------- */
+
+type ProjectModalProps = {
+  project: Project | null
+  isOpen: boolean
+  onClose: () => void
+}
+
+/* ---------- COMPONENT ---------- */
+
+const ProjectModal: React.FC<ProjectModalProps> = ({
+  project,
+  isOpen,
+  onClose,
+}) => {
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+
+  if (!project) return null
+
+  const { title, description, tech, liveUrl, image = '', video = '' } = project
+
+  const hasVideo: boolean = Boolean(video && video.trim().length > 0)
+  const hasImage: boolean = Boolean(image && image.trim().length > 0)
+
+  /* ---------- EFFECTS ---------- */
+
+  // ESC key + body scroll lock
   useEffect(() => {
-    const handleEscape = (e) => {
+    const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
+
     if (isOpen) {
       document.addEventListener('keydown', handleEscape)
       document.body.style.overflow = 'hidden'
-      
-      // Auto-play video when modal opens
+
+      // Try autoplay (muted)
       if (videoRef.current && hasVideo) {
+        videoRef.current.muted = true
         setTimeout(() => {
-          videoRef.current.play().catch(error => {
-            console.error("Auto-play failed:", error)
-          })
+          videoRef.current?.play().catch(() => {})
         }, 300)
       }
     }
+
     return () => {
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
-      
-      // Pause video when modal closes
+      document.body.style.overflow = ''
+
       if (videoRef.current) {
         videoRef.current.pause()
         setIsPlaying(false)
       }
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, hasVideo])
 
-  if (!project) return null
-
-  const { title, description, tech, liveUrl, image, video } = project
-  
-  const hasVideo = Boolean(video && video.trim() !== '')
-  const hasImage = Boolean(image && image.trim() !== '')
+  /* ---------- HANDLERS ---------- */
 
   const handleVideoClick = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause()
-        setIsPlaying(false)
-      } else {
-        videoRef.current.play().catch(error => {
-          console.error("Video play failed:", error)
-          videoRef.current.muted = true
-          videoRef.current.play()
+    if (!videoRef.current) return
+
+    if (isPlaying) {
+      videoRef.current.pause()
+      setIsPlaying(false)
+    } else {
+      videoRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {
+          videoRef.current!.muted = true
+          videoRef.current!.play()
+          setIsPlaying(true)
         })
-        setIsPlaying(true)
-      }
     }
   }
+
+  /* ---------- JSX ---------- */
 
   return (
     <AnimatePresence>
@@ -84,25 +107,26 @@ const ProjectModal = ({ project, isOpen, onClose }) => {
             onClick={onClose}
           />
 
-          {/* Modal Content */}
+          {/* Modal */}
           <motion.div
             className="relative glass-strong rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto card-shadow"
             variants={modalVariant}
             initial="hidden"
             animate="visible"
             exit="exit"
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Close Button */}
+            {/* Close */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 glass rounded-lg hover:bg-white/20 transition-smooth z-10 text-text-light"
+              className="absolute top-4 right-4 p-2 glass rounded-lg hover:bg-white/20 transition z-10 text-text-light"
               aria-label="Close modal"
             >
               <X size={24} />
             </button>
 
-            {/* Project Media */}
-            <div className="relative h-64 bg-gradient-to-br from-accent/20 to-neon/20 flex items-center justify-center rounded-t-2xl overflow-hidden">
+            {/* Media */}
+            <div className="relative h-64 bg-gradient-to-br from-accent/20 to-neon/20 rounded-t-2xl overflow-hidden">
               {hasVideo ? (
                 <div className="relative w-full h-full">
                   <video
@@ -116,6 +140,7 @@ const ProjectModal = ({ project, isOpen, onClose }) => {
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
                   />
+
                   {!isPlaying && (
                     <button
                       onClick={handleVideoClick}
@@ -135,14 +160,14 @@ const ProjectModal = ({ project, isOpen, onClose }) => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center">
+                <div className="flex h-full flex-col items-center justify-center">
                   <Code2 size={64} className="text-accent/50 mb-3" />
                   <p className="text-text-muted">Project Preview</p>
                 </div>
               )}
             </div>
 
-            {/* Project Details */}
+            {/* Content */}
             <div className="p-8">
               <h2
                 id="modal-title"
@@ -155,13 +180,12 @@ const ProjectModal = ({ project, isOpen, onClose }) => {
                 {description}
               </p>
 
-              {/* Tech Stack */}
               <div className="mb-6">
                 <h3 className="text-xl font-semibold mb-3 text-accent">
                   Technologies Used
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                  {tech.map((item) => (
+                  {tech.map((item: string) => (
                     <span
                       key={item}
                       className="px-4 py-2 glass rounded-lg text-sm font-medium neon-border text-text-light"
@@ -172,14 +196,13 @@ const ProjectModal = ({ project, isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Live Link */}
               {liveUrl && (
                 <div className="pt-6 border-t border-white/10">
                   <a
                     href={liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent/80 text-white font-semibold rounded-lg transition-smooth neon-glow"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent/80 text-white font-semibold rounded-lg transition neon-glow"
                   >
                     <ExternalLink size={18} />
                     View Live Project
