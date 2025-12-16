@@ -36,15 +36,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
-  // Checks
-  const hasVideo = Boolean(video.trim())
-  const hasImage = Boolean(image.trim())
+  const hasVideo: boolean = Boolean(video && video.trim().length > 0)
+  const hasImage: boolean = Boolean(image && image.trim().length > 0)
 
   /* ---------- HANDLERS ---------- */
 
   const handleVideoClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
-
     if (!videoRef.current) return
 
     if (isPlaying) {
@@ -64,7 +62,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
 
   /* ---------- EFFECTS ---------- */
 
-  // Auto-play on hover
+  // Auto play / pause on hover
   useEffect(() => {
     if (!videoRef.current || !hasVideo) return
 
@@ -83,14 +81,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
     }
   }, [isHovering, hasVideo])
 
-  // Try autoplay on mount (muted)
+  // Attempt muted autoplay on mount
   useEffect(() => {
     if (!videoRef.current || !hasVideo) return
-
     videoRef.current.muted = true
-    videoRef.current.play().catch(() => {
-      // autoplay blocked — hover will handle it
-    })
+    videoRef.current.play().catch(() => {})
   }, [hasVideo])
 
   /* ---------- JSX ---------- */
@@ -165,7 +160,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
         </p>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {tech.map((item) => (
+          {tech.map((item: string) => (
             <span
               key={item}
               className="px-3 py-1 text-xs glass-strong rounded-md text-accent"
