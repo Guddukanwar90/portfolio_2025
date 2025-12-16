@@ -4,65 +4,87 @@
  */
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { fadeInUp } from '@/lib/motionVariants'
 import { Send, Mail, Copy, Check } from 'lucide-react'
 
+type FormData = {
+  name: string
+  email: string
+  message: string
+}
+
+type FormErrors = {
+  name?: string
+  email?: string
+  message?: string
+}
+
+type Status = '' | 'sending' | 'success' | 'error'
+
 const ContactForm = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     message: '',
   })
-  const [errors, setErrors] = useState({})
-  const [status, setStatus] = useState('') // 'success', 'error', or ''
-  const [copied, setCopied] = useState(false)
 
-  const handleChange = (e) => {
+  const [errors, setErrors] = useState<FormErrors>({})
+  const [status, setStatus] = useState<Status>('')
+  const [copied, setCopied] = useState<boolean>(false)
+
+  /* Handle input + textarea change */
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+
+    // Clear error while typing
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }))
     }
   }
 
-  const validateForm = () => {
-    const newErrors = {}
-    
-    // Name validation
+  /* Client-side validation */
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {}
+
     if (formData.name.trim().length < 2) {
       newErrors.name = 'Name must be at least 2 characters'
     }
-    
-    // Email validation
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address'
     }
-    
-    // Message validation
+
     if (formData.message.trim().length < 10) {
       newErrors.message = 'Message must be at least 10 characters'
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e) => {
+  /* Form submit */
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault()
-    
-    if (!validateForm()) {
-      return
-    }
+
+    if (!validateForm()) return
 
     setStatus('sending')
 
-    // FORMSPREE INTEGRATION (Recommended)
-    // Replace 'YOUR_FORM_ID' with your actual Formspree form ID
-    // Get it from: https://formspree.io (after creating a form)
     try {
       const response = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
         method: 'POST',
@@ -85,7 +107,8 @@ const ContactForm = () => {
     }
   }
 
-  const copyEmail = () => {
+  /* Copy email */
+  const copyEmail = (): void => {
     navigator.clipboard.writeText('rathoreguddu425@gmail.com')
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -117,18 +140,17 @@ const ContactForm = () => {
           viewport={{ once: true }}
         >
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Field */}
+            {/* Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-2 text-text-light">
+              <label className="block text-sm font-medium mb-2 text-text-light">
                 Name
               </label>
               <input
                 type="text"
-                id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 glass-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-transparent text-text-light placeholder:text-text-muted"
+                className="w-full px-4 py-3 glass-strong rounded-lg bg-transparent text-text-light"
                 placeholder="Your name"
               />
               {errors.name && (
@@ -136,18 +158,17 @@ const ContactForm = () => {
               )}
             </div>
 
-            {/* Email Field */}
+            {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2 text-text-light">
+              <label className="block text-sm font-medium mb-2 text-text-light">
                 Email
               </label>
               <input
                 type="email"
-                id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 glass-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-transparent text-text-light placeholder:text-text-muted"
+                className="w-full px-4 py-3 glass-strong rounded-lg bg-transparent text-text-light"
                 placeholder="your.email@example.com"
               />
               {errors.email && (
@@ -155,18 +176,17 @@ const ContactForm = () => {
               )}
             </div>
 
-            {/* Message Field */}
+            {/* Message */}
             <div>
-              <label htmlFor="message" className="block text-sm font-medium mb-2 text-text-light">
+              <label className="block text-sm font-medium mb-2 text-text-light">
                 Message
               </label>
               <textarea
-                id="message"
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
-                rows="5"
-                className="w-full px-4 py-3 glass-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-transparent text-text-light placeholder:text-text-muted resize-none"
+                rows={5}
+                className="w-full px-4 py-3 glass-strong rounded-lg bg-transparent text-text-light resize-none"
                 placeholder="Tell me about your project..."
               />
               {errors.message && (
@@ -174,68 +194,38 @@ const ContactForm = () => {
               )}
             </div>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-accent hover:bg-accent/80 disabled:bg-accent/50 text-white font-semibold rounded-lg transition-smooth neon-glow"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white font-semibold rounded-lg"
             >
               <Send size={18} />
               {status === 'sending' ? 'Sending...' : 'Send Message'}
             </button>
 
-            {/* Status Messages */}
             {status === 'success' && (
-              <motion.p
-                className="text-green-400 text-center"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                ✓ Message sent successfully! I'll get back to you soon.
-              </motion.p>
+              <p className="text-green-400 text-center">
+                ✓ Message sent successfully!
+              </p>
             )}
+
             {status === 'error' && (
-              <motion.p
-                className="text-red-400 text-center"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                ✗ Something went wrong. Please try the email option below.
-              </motion.p>
+              <p className="text-red-400 text-center">
+                ✗ Something went wrong. Please try again.
+              </p>
             )}
           </form>
 
-          {/* Alternative Contact Methods */}
-          <div className="mt-8 pt-8 border-t border-white/10">
-            <p className="text-center text-text-muted mb-4">
-              Or reach me directly at:
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href="mailto:rathoreguddu425@gmail.com"
-                className="flex items-center gap-2 text-accent hover:text-accent/80 transition-smooth"
-              >
-                <Mail size={18} />
-                rathoreguddu425@gmail.com
-              </a>
-              <button
-                onClick={copyEmail}
-                className="flex items-center gap-2 px-4 py-2 glass-strong rounded-lg hover:bg-white/20 transition-smooth text-text-light"
-                aria-label="Copy email to clipboard"
-              >
-                {copied ? (
-                  <>
-                    <Check size={16} className="text-green-400" />
-                    <span className="text-green-400">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy size={16} />
-                    <span>Copy</span>
-                  </>
-                )}
-              </button>
-            </div>
+          {/* Email copy */}
+          <div className="mt-8 pt-8 border-t border-white/10 text-center">
+            <button
+              onClick={copyEmail}
+              className="flex items-center gap-2 mx-auto"
+            >
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+              {copied ? 'Copied!' : 'Copy Email'}
+            </button>
           </div>
         </motion.div>
       </div>
